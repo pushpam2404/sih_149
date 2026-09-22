@@ -20,7 +20,7 @@ def test_simulation_mode_wipes_a_copy_and_leaves_original_untouched(tmp_path):
     original.write_bytes(b"\xAA" * (2 * 1024 * 1024))
     original_bytes_before = original.read_bytes()
 
-    ledger = AuditLedger(tmp_path / "audit.sqlite3")
+    ledger = AuditLedger(tmp_path / "audit.sqlite3", hmac_key=b"test-only-fixed-key-not-for-production")
     info = disk_image_info(str(original))
     backend = MacOSDeviceBackend()  # unused for image targets, but required by the signature
 
@@ -60,7 +60,7 @@ def test_simulation_mode_wipes_a_copy_and_leaves_original_untouched(tmp_path):
 def test_drive_erase_refuses_without_confirmation(tmp_path):
     original = tmp_path / "source.img"
     original.write_bytes(b"\xAA" * 1024)
-    ledger = AuditLedger(tmp_path / "audit.sqlite3")
+    ledger = AuditLedger(tmp_path / "audit.sqlite3", hmac_key=b"test-only-fixed-key-not-for-production")
     info = disk_image_info(str(original))
     backend = MacOSDeviceBackend()
 
@@ -86,7 +86,7 @@ def test_default_scratch_copy_goes_to_data_dir_not_working_directory(tmp_path, m
     monkeypatch.setattr(drive_eraser, "DATA_DIR", data_dir)
     monkeypatch.chdir(elsewhere)
 
-    ledger = AuditLedger(tmp_path / "audit.sqlite3")
+    ledger = AuditLedger(tmp_path / "audit.sqlite3", hmac_key=b"test-only-fixed-key-not-for-production")
     try:
         result = run_drive_erase(
             disk_image_info(str(original)), MacOSDeviceBackend(), standard_id="single_pass_zero",
@@ -117,7 +117,7 @@ def test_simulation_mode_is_refused_for_a_real_device(tmp_path):
         def open_raw(self, info, mode):
             raise AssertionError("simulation mode must refuse before any device is opened")
 
-    ledger = AuditLedger(tmp_path / "audit.sqlite3")
+    ledger = AuditLedger(tmp_path / "audit.sqlite3", hmac_key=b"test-only-fixed-key-not-for-production")
     try:
         with pytest.raises(SimulationModeMismatchError):
             run_drive_erase(usb, _AllowingBackend(), standard_id="single_pass_zero", ledger=ledger,

@@ -112,6 +112,8 @@ cannot be used on a real device; turn it off explicitly for real hardware.
    card.
    A PDF and JSON report are written to `reports/`.
 
+After a real (non-simulation) erase, the tool automatically attempts to recover files from the target and reports what it found; 0 found is stronger evidence than the per-pass sampled check alone, but is still this tool checking itself.
+
 What "PASS" means: every pass completed and a random sample of blocks read
 back with the expected pattern. It does **not** mean every block was
 checked (see the coverage table in `technical_documentation.md`), and on
@@ -231,9 +233,11 @@ while the source image stays intact. Simulation runs are labelled
 ## FAQ
 
 **Q: Can this permanently sanitize an SSD?**
-A: No. It performs verified overwrite passes, which can leave data in
-remapped or over-provisioned flash cells. That needs firmware-level
-sanitize commands, which this tool does not run.
+A: Yes, but with strict conditions. Standard wipe passes leave data in remapped or over-provisioned flash cells. The "Advanced" Firmware Sanitize (Purge) feature solves this by issuing real firmware commands (ATA Secure Erase / NVMe Sanitize) to the drive controller. However, this feature is:
+1. Gated strictly to external/removable drives (never internal/system drives).
+2. Available only on Linux (requires `hdparm` or `nvme-cli`; macOS/Windows cannot safely issue these commands).
+3. Subject to Security Freeze Locks (you may need to physically unplug/replug the drive if the OS freezes it).
+4. **Not yet validated against physical hardware** — it is new and should be treated as unproven until tested by a human on a spare drive.
 
 **Q: Is the certificate legally valid?**
 A: Not on its own. It follows the structure of a BSA 2023 Section 63
@@ -241,9 +245,14 @@ certificate, but it has not been legally reviewed and is not digitally
 signed.
 
 **Q: Can the audit log be faked?**
-A: Edits are detected by Verify Chain Integrity. However, in this build the
-MAC key is a hardcoded development default, so someone with the source
-code and the database file could rebuild a fully consistent fake log.
+A: Edits are detected by Verify Chain Integrity. The MAC key now loads from
+the OS keystore (Keychain / Credential Manager / Secret Service) instead of
+a fixed value in source, and exported certificates are additionally signed
+with an Ed25519 key from the same keystore, verifiable with the embedded
+public key and no access to this machine. Neither is a certificate
+authority: someone with access to this machine's keystore (or, on a system
+with no keystore backend, its private key-fallback file) and the database
+file could still rebuild a consistent fake log.
 
 **Q: Does recovery modify the source device/image?**
 A: The engines only read from the source and write recovered files to a

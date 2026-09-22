@@ -28,7 +28,7 @@ exists so the gap between "a standard's procedure is implemented" and
 | Level | Status | Notes |
 |---|---|---|
 | **Clear** | Procedure implemented | `app/core/erasure/standards/nist_800_88.py` — one overwrite pass, verified by random sampled read-back (`app/core/erasure/verifier.py`). Verification samples 1% of blocks (min 16, max 512), **not** every block. |
-| **Purge** | Not implemented | Needs drive-native commands (ATA Secure Erase/Sanitize, NVMe Format/Sanitize). `app/core/erasure/firmware_sanitize.py` only *generates* these command strings; it never runs them, and no GUI path calls it. A malformed or interrupted firmware command can brick a drive, which is not acceptable in a demo tool. |
+| **Purge** | Implemented on Linux for external/removable drives, gated behind explicit double-confirmation; ATA path via `hdparm` two-step Security Erase, NVMe path via `nvme sanitize` + Sanitize Log polling; **not validated against physical hardware as of 2026-09-22**; not available on macOS/Windows (no safe firmware-execution path exists there). | Needs drive-native commands (ATA Secure Erase/Sanitize, NVMe Format/Sanitize). |
 | **Destroy** | Not implemented | Physical destruction is outside any software tool's scope. |
 
 ## DoD 5220.22-M
@@ -82,13 +82,17 @@ backups, and copies in other locations.
 | Mechanism | What it actually provides | Limitation |
 |---|---|---|
 | SHA-256 hash chain (`prev_hash` → `entry_hash`) | Detects edited, deleted, or reordered entries | An attacker who rewrites *every* entry from the tampered point onward can produce a self-consistent chain |
-| Forward-secure HMAC tag per entry (key ratchets after each entry) | Makes the full-rewrite attack above require the key | The initial key is currently a **hardcoded development default** in `ledger.py`. Anyone with the source code has it, so in this build the MAC adds no protection against a knowledgeable attacker. A production build must load the key from a secure store. |
+| Forward-secure HMAC tag per entry (key ratchets after each entry) | Makes the full-rewrite attack above require the key | The key now comes from the OS keystore (macOS Keychain / Windows Credential Manager / Linux Secret Service) via `keystore.py`, generated on first use and never present in source. If no keystore backend is available (e.g. headless Linux with no Secret Service session) it falls back to a private, mode-0600 file under the app's data directory instead — still per-machine generated, but not OS-keystore-protected in that case. Either way, whoever can read that key (from the keystore or the fallback file) can still forge a self-consistent chain — this raises the bar from "anyone with the source code" to "someone with access to this machine's keystore or its data directory," not to zero-trust. |
 | SQLite triggers blocking `UPDATE`/`DELETE` | Stops accidental edits and edits made through ordinary SQL | Anyone with file access can drop the triggers or edit the file directly. The chain check is the real defense, and it only *detects* tampering after the fact. |
 | Trusted timestamping (`timestamping.py`) | **Not active.** Code exists to request an RFC 3161 token from a public TSA, but nothing in the app calls it | Timestamps in the log come from the local system clock and can be wrong or altered |
 
 "Blockchain & Cybersecurity" theme: this is a single-machine hash chain,
 the core data structure a blockchain uses. There is no distributed
 ledger, consensus, or external anchoring.
+
+### Independent Post-Erase Verification
+
+Automatic on real erases, this mechanism logs an `ACTION_POST_ERASE_VERIFICATION` entry linked to the erase entry via `erase_entry_id`, surfaced in the certificate's `audit_trail`. This raises confidence the wipe worked, but it does not make the claim independently verified by a third party.
 
 ## Certificates (BSA 2023 Section 63-style)
 
@@ -102,9 +106,19 @@ embedded `limitations` list.
 - The operator types the wipe status. The tool does not derive it
   automatically, but the underlying audit entries (with PASS/FAIL and the
   standard used) are included so a reviewer can check it.
-- `integrity_digest` is an **unkeyed** SHA-384 digest. It catches careless
-  edits, but anyone can recompute it after changing the file. It is not a
-  digital signature, and there is no PKI.
+- `integrity_digest` (a SHA-384 digest of the certificate) is now signed
+  with **Ed25519** (`signature_ed25519`, `public_key_ed25519` — see
+  `signing.py`). The private key lives in the OS keystore (same mechanism
+  as the ledger's HMAC key above) and never leaves this machine; the
+  public key travels inside the certificate, so a reviewer can verify the
+  certificate was not altered after signing with no access to this app,
+  this machine, or any shared secret. This is **not PKI**: there is no
+  certificate authority binding that public key to an operator's or
+  organization's identity — it proves integrity since signing, not who
+  signed it. If the `cryptography` package is unavailable at generation
+  time, the certificate falls back to the old unsigned SHA-384 digest and
+  says so explicitly in its own `limitations` list and `signature_algorithm`
+  field.
 
 ## Advanced File Carving and Recovery — Evidentiary Integrity
 
@@ -121,8 +135,8 @@ embedded `limitations` list.
 
 | Requirement | Status |
 |---|---|
-| Compliance with data destruction standards | **Partial** — Clear-level overwrite procedures implemented; Purge not implemented; nothing certified |
-| Tamper-resistant reporting | **Implemented as tamper-evident** (detects, does not prevent); MAC key hardcoded in this build |
+| Compliance with data destruction standards | **Partial** — Clear-level overwrite procedures implemented; Purge implemented for external drives on Linux; nothing certified |
+| Tamper-resistant reporting | **Implemented as tamper-evident** (detects, does not prevent); HMAC key and certificate signing key now come from the OS keystore, not a hardcoded literal — see the ledger table above for what that does and doesn't change |
 | Preserving evidential integrity | **Partial** — hashing and read-only access by convention; no enforced write-blocking, not certified |
 | Compliance with forensic standards | **Not claimed** |
 | Cross-platform (Windows, Linux, macOS) | **Partial** — the test suite and a real-machine self-check pass on all three in CI; physical-drive erase and USB detection on real hardware have not been tested on any of them |

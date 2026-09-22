@@ -36,7 +36,7 @@ def test_pytsk3_recovers_deleted_file_from_pure_python_fat_image(tmp_path):
 
 def test_full_scan_pipeline_logs_hashes_and_reports(tmp_path):
     fixture = make_fat16_image_with_deleted_file(str(tmp_path / "portable.img"))
-    ledger = AuditLedger(tmp_path / "audit.sqlite3")
+    ledger = AuditLedger(tmp_path / "audit.sqlite3", hmac_key=b"test-only-fixed-key-not-for-production")
     try:
         summary = run_recovery_scan(
             source_path=fixture.image_path,

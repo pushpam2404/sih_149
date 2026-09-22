@@ -60,7 +60,7 @@ def bench_drive_erase(work: Path) -> None:
         for std in STANDARDS:
             times, oks = [], []
             for i in range(RUNS):
-                ledger = AuditLedger(work / f"audit_{std}_{size_mb}_{i}.sqlite3")
+                ledger = AuditLedger(work / f"audit_{std}_{size_mb}_{i}.sqlite3", hmac_key=b"benchmark-only-fixed-key")
                 scratch = work / f"scratch_{std}_{size_mb}_{i}"
                 elapsed, result = _timed(lambda: run_drive_erase(
                     info, backend, standard_id=std, ledger=ledger,
@@ -92,7 +92,7 @@ def bench_file_erase(work: Path) -> None:
                 p = folder / f"f{n}.bin"
                 p.write_bytes(os.urandom(size_kb * 1024))
                 paths.append(str(p))
-            ledger = AuditLedger(work / f"audit_files_{count}_{i}.sqlite3")
+            ledger = AuditLedger(work / f"audit_files_{count}_{i}.sqlite3", hmac_key=b"benchmark-only-fixed-key")
             elapsed, batch = _timed(lambda: erase_batch(paths, ledger))
             ledger.close()
             times.append(elapsed)
@@ -123,7 +123,7 @@ def bench_recovery(work: Path) -> None:
                 continue
             times, counts, hits = [], [], []
             for i in range(RUNS):
-                ledger = AuditLedger(work / f"audit_rec_{engine.name}_{size_mb}_{i}.sqlite3")
+                ledger = AuditLedger(work / f"audit_rec_{engine.name}_{size_mb}_{i}.sqlite3", hmac_key=b"benchmark-only-fixed-key")
                 out = work / f"out_{engine.name}_{size_mb}_{i}"
                 elapsed, summary = _timed(lambda: run_recovery_scan(
                     fixture.image_path, str(out), ledger, engines=[engine]))

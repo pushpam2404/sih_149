@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import shutil
 
 from PySide6.QtWidgets import (
     QCheckBox,
@@ -18,6 +19,12 @@ from app.core.devices.enumerator import disk_image_info, get_backend, list_devic
 from app.core.devices.fingerprint import fingerprint
 from app.core.devices.safety import classify_target
 from app.core.erasure.drive_eraser import DriveEraseResult, run_drive_erase
+from app.core.erasure.firmware_sanitize import (
+    FirmwareSanitizeResult,
+    execute_ata_secure_erase,
+    execute_nvme_sanitize,
+)
+from app.core.erasure.post_erase_verification import VerifiedDriveEraseResult, run_verified_drive_erase
 from app.core.erasure.standards import list_standards
 from app.core.reporting.json_report import save_json
 from app.core.reporting.pdf_report import render_pdf
@@ -65,6 +72,7 @@ class DriveEraserView(QWidget):
         )
         self._table = DeviceTable()
         self._table.setMinimumHeight(170)
+        self._table.itemSelectionChanged.connect(self._on_table_selection_changed)
         targets.body.addWidget(self._table)
         page.body.addWidget(targets, 3)
 
@@ -100,7 +108,19 @@ class DriveEraserView(QWidget):
         erase_btn = button("Erase Selected Target", variant="danger", icon_name="trash", large=True)
         erase_btn.clicked.connect(self._start_erase)
         options.body.addWidget(erase_btn)
-        lower.addWidget(options, 2)
+        
+        advanced = Card("Advanced", icon_name="shield-alert")
+        self._firmware_btn = button("Firmware Sanitize (Purge)...", variant="danger", icon_name="trash")
+        self._firmware_btn.clicked.connect(self._start_firmware_sanitize)
+        self._firmware_btn.setEnabled(False)
+        advanced.body.addWidget(self._firmware_btn)
+        
+        options_layout = QVBoxLayout()
+        options_layout.addWidget(options)
+        options_layout.addWidget(advanced)
+        options_layout.addStretch()
+        
+        lower.addLayout(options_layout, 2)
 
         progress_card = Card("Progress", icon_name="activity")
         self._progress = ProgressPanel()
@@ -169,7 +189,7 @@ class DriveEraserView(QWidget):
 
         self._progress.start(f"Erasing {info.display_name}...")
         self._worker = Worker(
-            run_drive_erase,
+            run_verified_drive_erase,
             info=info,
             backend=self._backend,
             standard_id=standard_id,
@@ -185,20 +205,93 @@ class DriveEraserView(QWidget):
     def _on_progress(self, message: str) -> None:
         self._progress.log(message)
 
-    def _on_success(self, result: DriveEraseResult, info) -> None:
-        status = "PASS" if result.ok else f"FAIL: {result.error}"
+    def _on_success(self, result: VerifiedDriveEraseResult, info) -> None:
+        status = "PASS" if result.erase.ok else f"FAIL: {result.erase.error}"
         self._progress.finish(f"Erase complete — {status}")
 
-        report = build_drive_erase_report(result, info)
+        report = build_drive_erase_report(result.erase, info, result.recovery_check)
         base = REPORTS_DIR / f"drive_erase_{report.report_id}"
         save_json(report, str(base.with_suffix(".json")))
         render_pdf(report, str(base.with_suffix(".pdf")))
 
-        if result.ok:
-            QMessageBox.information(self, "Erase complete", f"Verification PASSED.\nReport saved to {base}.pdf")
+        msg_text = f"Verification PASSED.\nReport saved to {base}.pdf"
+        if result.erase.ok and result.recovery_check is not None and result.recovery_candidates_found == 0:
+            msg_text += "\n\nIndependent recovery check: 0 files recoverable."
+
+        if result.erase.ok:
+            QMessageBox.information(self, "Erase complete", msg_text)
         else:
-            QMessageBox.critical(self, "Erase failed", f"{result.error}\nReport saved to {base}.pdf")
+            QMessageBox.critical(self, "Erase failed", f"{result.erase.error}\nReport saved to {base}.pdf")
+
+        if result.recovery_check is not None and result.recovery_candidates_found > 0:
+            QMessageBox.warning(self, "Recovery Check Warning", f"⚠ Independent recovery check found {result.recovery_candidates_found} recoverable file(s) after the wipe. See the report for details.")
 
     def _on_failure(self, error: str) -> None:
         self._progress.finish(f"Error: {error}")
         QMessageBox.critical(self, "Erase failed", error)
+
+    def _on_table_selection_changed(self) -> None:
+        info = self._table.selected_device()
+        if not info:
+            self._firmware_btn.setEnabled(False)
+            self._firmware_btn.setToolTip("Select a target first.")
+            return
+
+        verdict = classify_target(info, self._backend)
+        if not verdict.allowed:
+            self._firmware_btn.setEnabled(False)
+            self._firmware_btn.setToolTip(f"Not allowed: {verdict.reason}")
+            return
+
+        if not (info.is_removable and not info.is_internal):
+            self._firmware_btn.setEnabled(False)
+            self._firmware_btn.setToolTip("Only available for external/removable drives.")
+            return
+
+        if shutil.which("hdparm") is None and shutil.which("nvme") is None:
+            self._firmware_btn.setEnabled(False)
+            self._firmware_btn.setToolTip("Not available on this OS (missing hdparm/nvme-cli).")
+            return
+
+        self._firmware_btn.setEnabled(True)
+        self._firmware_btn.setToolTip("Issues real firmware commands (ATA Secure Erase / NVMe Sanitize).")
+
+    def _start_firmware_sanitize(self) -> None:
+        info = self._table.selected_device()
+        if not info:
+            return
+
+        method = "NVMe Sanitize" if getattr(info, "topology_type", "") == "nvme" else "ATA Secure Erase"
+        confirm_token = fingerprint(info)[:8] + "-FIRMWARE"
+        warning = (
+            f"This issues real firmware commands directly to {info.display_name}'s controller ({method}). "
+            f"An interruption, power loss, or unsupported drive can permanently destroy this device. "
+            f"This is different from, and riskier than, the standard erase above. It cannot be undone or simulated."
+        )
+        if not ConfirmDestructiveDialog.confirm(self, warning, confirm_token):
+            return
+
+        self._progress.start(f"Running {method} on {info.display_name}...")
+        
+        target_func = execute_nvme_sanitize if method == "NVMe Sanitize" else execute_ata_secure_erase
+        self._worker = Worker(
+            target_func,
+            info=info,
+            backend=self._backend,
+            ledger=self._ledger,
+            user_confirmed=True,
+        )
+        self._worker.progress.connect(self._on_progress)
+        self._worker.succeeded.connect(self._on_firmware_success)
+        self._worker.failed.connect(self._on_failure)
+        self._worker.start()
+
+    def _on_firmware_success(self, result: FirmwareSanitizeResult) -> None:
+        status = "PASS" if result.ok else "FAIL"
+        self._progress.finish(f"Firmware Sanitize complete — {status}")
+        
+        if result.ok:
+            QMessageBox.information(self, "Firmware Sanitize complete", "PASS: Firmware command completed successfully.")
+        else:
+            QMessageBox.critical(self, "Firmware Sanitize failed", f"FAIL: {result.error}")
+

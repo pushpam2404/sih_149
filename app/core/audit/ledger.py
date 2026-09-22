@@ -13,6 +13,7 @@ from pathlib import Path
 from app.core.audit.models import GENESIS_HASH, AuditEntry
 from app.core.audit.store import AuditStore
 from app.core.audit.hmac_auth import ForwardSecureAuthenticator
+from app.core.audit.keystore import get_or_create_secret
 from app.core.audit.timestamping import TSAService
 from app.utils.logging_setup import get_logger
 
@@ -30,9 +31,12 @@ class ChainVerificationResult:
 class AuditLedger:
     def __init__(self, db_path: Path, hmac_key: bytes | None = None):
         self._store = AuditStore(db_path)
-        # In a real app, this key should be loaded securely (e.g. from an env var, 
-        # a hardware module, or secure enclave) instead of a hardcoded default.
-        self._initial_key = hmac_key if hmac_key is not None else b"default-insecure-initial-key-for-dev"
+        # Loaded from the OS keystore (Keychain / Credential Manager / Secret
+        # Service) by default — see keystore.py — with a private-file
+        # fallback if no backend is available. Callers (tests, benchmarks)
+        # pass an explicit hmac_key to stay hermetic and avoid touching the
+        # real OS keystore.
+        self._initial_key = hmac_key if hmac_key is not None else get_or_create_secret("hmac-ratchet-key")
         self._authenticator = ForwardSecureAuthenticator(self._initial_key)
         self._tsa = TSAService()
         

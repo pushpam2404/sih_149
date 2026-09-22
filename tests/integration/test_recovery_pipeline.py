@@ -25,7 +25,7 @@ pytestmark = pytest.mark.skipif(
 def test_recovery_scan_finds_the_deleted_file(tmp_path):
     fixture = make_fat_image_with_deleted_file(str(tmp_path / "recovery_test.img"), size_mb=32)
 
-    ledger = AuditLedger(tmp_path / "audit.sqlite3")
+    ledger = AuditLedger(tmp_path / "audit.sqlite3", hmac_key=b"test-only-fixed-key-not-for-production")
     summary = run_recovery_scan(
         source_path=fixture.image_path,
         output_dir=str(tmp_path / "recovered"),

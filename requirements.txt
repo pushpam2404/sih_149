@@ -32,6 +32,15 @@ magika>=0.5.0
 # recovery: fuzzy hashing (ssdeep / Context Triggered Piecewise Hashing)
 ppdeep>=20260221
 
+# audit: OS keystore access (macOS Keychain / Windows Credential Manager /
+# Linux Secret Service) for the ledger's HMAC key and Ed25519 signing seed.
+# Falls back to a private per-user file (see app/core/audit/keystore.py) if
+# no backend is available, e.g. headless Linux CI with no D-Bus session.
+keyring>=24.0
+
+# audit: Ed25519 signatures on exported certificates (app/core/audit/signing.py).
+cryptography>=42.0
+
 # testing
 pytest>=8.0
 pytest-qt>=4.4

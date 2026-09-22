@@ -79,6 +79,7 @@ def run_recovery_scan(
     ledger: AuditLedger,
     engines: list[RecoveryEngine] | None = None,
     progress_cb: ProgressCallback | None = None,
+    target_label: str | None = None,
 ) -> ScanSummary:
     engines = engines if engines is not None else _default_engines()
     engines_used, engines_unavailable = [], []
@@ -126,7 +127,7 @@ def run_recovery_scan(
 
     ledger.append_entry(
         action=ACTION_RECOVERY_SCAN,
-        target=source_path,
+        target=target_label or source_path,
         payload={
             "engines_used": engines_used,
             "engines_unavailable": engines_unavailable,

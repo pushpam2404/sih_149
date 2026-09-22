@@ -117,6 +117,10 @@ explains what's missing. No run against a physical drive is recorded in
 `validation_testing.md` on any platform; all automated tests use disk
 images or recorded enumeration output.
 
+### Independent Post-Erase Verification
+
+`app/core/erasure/post_erase_verification.py` orchestrates `run_verified_drive_erase()`, which wraps `run_drive_erase()`. On real erases (non-simulation), it automatically runs a recovery scan (`run_recovery_scan`) against the target immediately after wiping it to verify no files can be recovered by an independent engine, providing stronger evidence than the per-pass sampled check alone.
+
 ## Filesystem-Aware File Erasure — Warning text unit-tested; detection checked per OS
 
 `app/core/erasure/fs_aware.py` detects the filesystem of a file before
@@ -161,9 +165,17 @@ payload, prev_hash}))`. `verify_chain()` checks, for every entry in order:
 `DELETE` on the table.
 
 Limitations:
-- **The HMAC starting key is a hardcoded development default** (see
-  `AuditLedger.__init__`). With the source code, anyone can recompute
-  valid tags, so the MAC gives no real protection in this build.
+- **The HMAC starting key loads from the OS keystore** (macOS Keychain /
+  Windows Credential Manager / Linux Secret Service, via
+  `app/core/audit/keystore.py`), generated on first use — see
+  `AuditLedger.__init__`. It is no longer a value present in source. If no
+  keystore backend is available, it falls back to a private, mode-0600
+  file under the app's data directory instead of failing — still
+  per-machine generated, just not OS-keystore-protected in that case.
+  Either way, whoever can read that key can still recompute valid tags and
+  rebuild a self-consistent chain; this is a real barrier against "anyone
+  with the source code," not a barrier against "anyone with access to this
+  machine."
 - Triggers only stop ordinary SQL. Anyone with file access can drop them.
   The chain check *detects* tampering; nothing *prevents* it.
 - Entries with no MAC tag (older databases) are skipped by the MAC check

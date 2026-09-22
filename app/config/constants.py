@@ -28,6 +28,8 @@ ALL_STANDARDS = (
 ACTION_DRIVE_ERASE = "drive_erase"
 ACTION_FILE_ERASE = "file_erase"
 ACTION_RECOVERY_SCAN = "recovery_scan"
+ACTION_POST_ERASE_VERIFICATION = "post_erase_verification"
+ACTION_FIRMWARE_SANITIZE = "firmware_sanitize"
 ACTION_REPORT_EXPORT = "report_export"
 
 # Recovery candidate confidence bands (0-100 score -> label), used by GUI + reports.

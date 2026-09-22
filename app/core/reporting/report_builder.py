@@ -42,7 +42,7 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-def build_drive_erase_report(result: DriveEraseResult, info: DeviceInfo) -> Report:
+def build_drive_erase_report(result: DriveEraseResult, info: DeviceInfo, recovery_check: ScanSummary | None = None) -> Report:
     passes_rows = [
         {
             "fill_mode": r.fill_mode,
@@ -52,20 +52,29 @@ def build_drive_erase_report(result: DriveEraseResult, info: DeviceInfo) -> Repo
         }
         for r in result.pass_results
     ]
+    summary_dict = {
+        "target": info.display_name,
+        "target_fingerprint": result.device_fingerprint,
+        "size_bytes": info.size_bytes,
+        "standard": result.standard_id,
+        "simulation_mode": result.simulation_mode,
+        "result": "PASS" if result.ok else "FAIL",
+        "error": result.error,
+    }
+    if recovery_check is not None:
+        summary_dict["post_erase_verification"] = {
+            "engines_used": recovery_check.engines_used,
+            "engines_unavailable": recovery_check.engines_unavailable,
+            "candidates_found": len(recovery_check.candidates),
+            "candidate_names": [c.suggested_name for c in recovery_check.candidates[:10]],
+        }
+
     return Report(
         report_id=_new_report_id(),
         title=f"Secure Drive Erasure Certificate — {info.display_name}",
         generated_at=_now(),
         report_type="drive_erasure_certificate",
-        summary={
-            "target": info.display_name,
-            "target_fingerprint": result.device_fingerprint,
-            "size_bytes": info.size_bytes,
-            "standard": result.standard_id,
-            "simulation_mode": result.simulation_mode,
-            "result": "PASS" if result.ok else "FAIL",
-            "error": result.error,
-        },
+        summary=summary_dict,
         sections=[ReportSection(title="Overwrite Passes", rows=passes_rows)],
         notice=(
             "SIMULATION MODE — this run wiped a scratch copy of the selected disk "

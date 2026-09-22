@@ -8,7 +8,7 @@ from app.core.erasure.file_eraser import erase_batch, erase_file, erase_folder
 
 @pytest.fixture()
 def ledger(tmp_path):
-    led = AuditLedger(tmp_path / "audit.sqlite3")
+    led = AuditLedger(tmp_path / "audit.sqlite3", hmac_key=b"test-only-fixed-key-not-for-production")
     yield led
     led.close()
 

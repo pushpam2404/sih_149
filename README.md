@@ -56,12 +56,15 @@ window's title bar differs.
 
 | ✅ Works (tested) | ⚠️ Works with caveats | ❌ Not done |
 |---|---|---|
-| Simulation-mode erase of disk images, verified — on Windows, Linux and macOS | Erase verification reads a **sample** of blocks (100% at 64 MB, 6% at 1 GB, 0.2% at 1 TB) | NIST 800-88 **Purge** / firmware Secure Erase (commands generated, never run) |
+| Simulation-mode erase of disk images, verified — on Windows, Linux and macOS | Erase verification reads a **sample** of blocks (100% at 64 MB, 6% at 1 GB, 0.2% at 1 TB) | |
+| | NIST 800-88 Purge (ATA Secure Erase / NVMe Sanitize) is implemented and executable, gated to external/removable drives and double-confirmed — but Linux-only (hdparm/nvme-cli), not available on macOS/Windows, and not yet tested against physical hardware | |
 | System drive blocked from erasure (checked on real Windows, Linux and macOS machines) | Overwrite does **not** guarantee physical erasure on SSDs, flash, APFS or other copy-on-write filesystems | A recorded erase test on a physical drive, on any OS |
-| File overwrite + rename + xattr clear + unlink | Audit HMAC key is a **hardcoded dev default** — no real protection in this build | Partition-table recovery (TestDisk not wired) |
+| File overwrite + rename + xattr clear + unlink | Audit HMAC key and certificate signing key load from the OS keystore (fallback: a private file) — not a PKI, and whoever can read that key can still forge a chain | Partition-table recovery (TestDisk not wired) |
 | Deleted-file recovery, byte-exact, on FAT images (via pytsk3) | Tamper-*evident*, not tamper-*proof*: detects edits, can't prevent them | Trusted (RFC 3161) timestamping in the app flow |
-| Hash-chain tamper detection | Certificate follows BSA Sec. 63 structure; **not legally reviewed, not signed** | Recovery-rate measurement on a real forensic corpus |
-| Automated tests pass on Windows, Linux and macOS | Confidence scores are uncalibrated heuristics | Gap carving for fragments PhotoRec can't map |
+| Hash-chain tamper detection | Certificate is Ed25519-signed but **not legally reviewed**; no CA binds the key to an identity | Recovery-rate measurement on a real forensic corpus |
+| Automated tests pass on Windows, Linux and macOS | Confidence scores are uncalibrated heuristics | |
+| | Independent post-erase recovery check runs automatically on real erases (PhotoRec/pytsk3 attempt recovery against the just-wiped target) — still same-machine software checking itself, a different code path/engine but not a third party | |
+| | Bifragment gap carving exists (`reassembly.py`) but is called with `attempt_gap_carving=False` — built, not enabled | |
 | | bulk_extractor untested (not installed on our dev machine or CI) | A test showing a deleted file carved *without* filesystem metadata |
 | | Fuzzy hashes skipped for files > 4 MiB (pure-Python hashing is too slow) | Windows code signing / installer |
 
