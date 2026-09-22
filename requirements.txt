@@ -14,6 +14,7 @@ reportlab>=4.0
 # verification math (entropy/chi-square)
 numpy>=1.26
 
+
 # recovery: filesystem-aware carving (Sleuth Kit bindings).
 # Prebuilt wheels bundle libtsk for Windows, Linux (x86_64/aarch64) and macOS,
 # so no system Sleuth Kit install is needed. Optional — the app degrades
