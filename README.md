@@ -12,7 +12,6 @@ state exactly what works, what doesn't, and what we haven't tested. See
 [What we claim and don't](#what-we-claim-and-dont) and
 [docs/compliance_mapping.md](docs/compliance_mapping.md).
 
-
 ## Why this matters
 
 Investigators currently use one tool to destroy data and a different one to
@@ -22,7 +21,7 @@ every recovery scan can be checked afterwards. It can also produce a
 certificate structured after India's BSA 2023 Section 63 electronic-evidence
 certificate.
 
-## Modules
+## Module
 
 1. **Secure Drive Eraser** — wipes disk images and external/removable drives
    (the system drive is always blocked) using single-pass, NIST 800-88 Clear,
