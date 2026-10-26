@@ -75,5 +75,5 @@ docs/Secure Data Erasure Standards Analysis.md
 docs/Secure File Deletion Analysis.md
 
 # Output of scripts/render_screenshots.py
-screenshots/
-shots/
+/screenshots/
+/shots/
