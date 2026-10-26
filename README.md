@@ -5,14 +5,14 @@
 SIH Problem Statement 26149 (NTRO) — one desktop app that combines secure
 drive/file erasure with forensic file carving and recovery. Every action is
 recorded in a tamper-evident, hash-chained audit log and exported as PDF/JSON
-reports. Runs on **Windows, Linux and macOS**.
+reports. Runs on Windows, Linux and macOS.
 
 **This is a hackathon prototype, not a certified product.** We've tried to
 state exactly what works, what doesn't, and what we haven't tested. See
-[What we claim and don't](#what-we-claim-and-dont) and
+[What works and what doesn't](#what-works-and-what-doesnt) and
 [docs/compliance_mapping.md](docs/compliance_mapping.md).
 
-## Why this matters
+## The problem
 
 Investigators currently use one tool to destroy data and a different one to
 recover it, with no shared, verifiable record connecting the two. This tool
@@ -21,7 +21,9 @@ every recovery scan can be checked afterwards. It can also produce a
 certificate structured after India's BSA 2023 Section 63 electronic-evidence
 certificate.
 
-## Module
+![Drive Eraser page: device table with blocked system disks, wipe options, progress log](docs/screenshots/drive_eraser.png)
+
+## Modules
 
 1. **Secure Drive Eraser** — wipes disk images and external/removable drives
    (the system drive is always blocked) using single-pass, NIST 800-88 Clear,
@@ -41,32 +43,49 @@ certificate.
 
 ## Platform support
 
-Runs on **Windows 10/11, Linux and macOS**, with the same look on all three:
+Runs on Windows 10/11, Linux and macOS, with the same look on all three:
 the app draws its own theme, fonts, icons and file picker, so only the
 window's title bar differs.
 
 | | Windows | Linux | macOS |
 |---|---|---|---|
-| Erase disk images, recover deleted files | ✅ | ✅ | ✅ |
-| System disk always blocked | ✅ | ✅ | ✅ |
-| Erase or scan a **physical** drive | ⚠️ untested | ⚠️ untested | ⚠️ untested |
+| Erase disk images, recover deleted files | yes | yes | yes |
+| System disk always blocked | yes | yes | yes |
+| Erase or scan a **physical** drive | untested | untested | untested |
 | Rights needed for a physical drive | Administrator | root (`sudo`) | root (`sudo`) |
 
-## What we claim and don't
+## What works and what doesn't
 
-| ✅ Works (tested) | ⚠️ Works with caveats | ❌ Not done |
-|---|---|---|
-| Simulation-mode erase of disk images, verified — on Windows, Linux and macOS | Erase verification reads a **sample** of blocks (100% at 64 MB, 6% at 1 GB, 0.2% at 1 TB) | |
-| | NIST 800-88 Purge (ATA Secure Erase / NVMe Sanitize) is implemented and executable, gated to external/removable drives and double-confirmed — but Linux-only (hdparm/nvme-cli), not available on macOS/Windows, and not yet tested against physical hardware | |
-| System drive blocked from erasure (checked on real Windows, Linux and macOS machines) | Overwrite does **not** guarantee physical erasure on SSDs, flash, APFS or other copy-on-write filesystems | A recorded erase test on a physical drive, on any OS |
-| File overwrite + rename + xattr clear + unlink | Audit HMAC key and certificate signing key load from the OS keystore (fallback: a private file) — not a PKI, and whoever can read that key can still forge a chain | Partition-table recovery (TestDisk not wired) |
-| Deleted-file recovery, byte-exact, on FAT images (via pytsk3) | Tamper-*evident*, not tamper-*proof*: detects edits, can't prevent them | Trusted (RFC 3161) timestamping in the app flow |
-| Hash-chain tamper detection | Certificate is Ed25519-signed but **not legally reviewed**; no CA binds the key to an identity | Recovery-rate measurement on a real forensic corpus |
-| Automated tests pass on Windows, Linux and macOS | Confidence scores are uncalibrated heuristics | |
-| | Independent post-erase recovery check runs automatically on real erases (PhotoRec/pytsk3 attempt recovery against the just-wiped target) — still same-machine software checking itself, a different code path/engine but not a third party | |
-| | Bifragment gap carving exists (`reassembly.py`) but is called with `attempt_gap_carving=False` — built, not enabled | |
-| | bulk_extractor untested (not installed on our dev machine or CI) | A test showing a deleted file carved *without* filesystem metadata |
-| | Fuzzy hashes skipped for files > 4 MiB (pure-Python hashing is too slow) | Windows code signing / installer |
+Tested (automated tests on Windows, Linux and macOS):
+
+- Simulation-mode erase of disk images, with read-back verification.
+- The system drive is blocked from erasure (also checked by hand on real Windows, Linux and macOS machines).
+- File overwrite, rename, extended-attribute clear and unlink.
+- Byte-exact recovery of deleted files from FAT images through pytsk3.
+- Hash-chain tamper detection.
+
+Works, with caveats:
+
+- Erase verification reads a sample of blocks: 100% at 64 MB, 6% at 1 GB, 0.2% at 1 TB.
+- Overwriting does not guarantee physical erasure on SSDs, flash, APFS or other copy-on-write filesystems.
+- NIST 800-88 Purge (ATA Secure Erase / NVMe Sanitize) is implemented and gated to external/removable drives with a double confirmation. It is Linux only (hdparm / nvme-cli) and has not been run on physical hardware.
+- A post-erase recovery check (PhotoRec / pytsk3 against the just-wiped target) runs automatically on real erases. It is still our own software checking itself, through a different engine.
+- The audit HMAC key and the certificate signing key come from the OS keystore, with a private file as fallback. This is not a PKI, and whoever can read that key can forge a chain.
+- The log is tamper-evident: it detects edits and cannot prevent them.
+- Certificates are Ed25519-signed and not legally reviewed. No CA binds the key to an identity.
+- Confidence scores are uncalibrated heuristics.
+- Bifragment gap carving exists (`reassembly.py`) but is called with `attempt_gap_carving=False`.
+- Fuzzy hashes are skipped for files over 4 MiB, because pure-Python hashing is too slow.
+- bulk_extractor is untested (not installed on our dev machine or CI).
+
+Not done:
+
+- A recorded erase test on a physical drive, on any OS.
+- Partition-table recovery (TestDisk is not wired in).
+- Trusted (RFC 3161) timestamping in the app flow.
+- Recovery-rate measurement on a real forensic corpus.
+- A test showing a deleted file carved without filesystem metadata.
+- Windows code signing and an installer.
 
 ## Benchmarks (Apple M4, disk images on internal SSD)
 
@@ -160,8 +179,9 @@ Developers: how the code is tested, and what isn't, is in
 - On Windows, erasing a physical drive takes that disk **offline** for the
   duration of the erase (Windows blocks raw writes to mounted volumes) and
   brings it back online afterwards.
-- Firmware-level (NVMe/ATA) sanitize commands are generated as reference
-  strings only and never executed.
+- Firmware sanitize (ATA Secure Erase / NVMe Sanitize) really runs `hdparm` /
+  `nvme sanitize`, on Linux and only for external/removable drives, after a
+  confirmation. It has not been tried on physical hardware. Use a spare drive.
 
 ## Documentation
 
@@ -175,3 +195,23 @@ Developers: how the code is tested, and what isn't, is in
 Bundled third-party assets: Fira Sans / Fira Code fonts (SIL Open Font
 License, `app/gui/assets/fonts/OFL.txt`) and Lucide icons (ISC License,
 `app/gui/assets/icons/LUCIDE_LICENSE.txt`).
+
+## Screenshots
+
+Rendered with `python -m scripts.render_screenshots` on macOS (dark theme, 1280x820 window).
+
+| Dashboard | Recovery |
+|---|---|
+| ![Dashboard](docs/screenshots/dashboard.png) | ![Recovery](docs/screenshots/recovery.png) |
+
+## Tests
+
+```bash
+QT_QPA_PLATFORM=offscreen .venv/bin/python -m pytest tests
+```
+
+109 tests, about five minutes on an M4 Mac (the erase and recovery tests write real image files). CI runs them on all three OSes.
+
+## License
+
+MIT, see [LICENSE](LICENSE).

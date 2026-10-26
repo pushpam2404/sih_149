@@ -6,13 +6,13 @@
 PySide6>=6.7,<7
 
 # device enumeration
-psutil>=5.9
+psutil>=5.9,<8
 
 # reporting
-reportlab>=4.0
+reportlab>=4.0,<6
 
 # verification math (entropy/chi-square)
-numpy>=1.26
+numpy>=1.26,<3
 
 
 # recovery: filesystem-aware carving (Sleuth Kit bindings).
@@ -25,10 +25,10 @@ pytsk3>=20231007
 # macOS/Linux only: needs the system libmagic (`brew install libmagic` /
 # `apt-get install libmagic1`). Skipped on Windows, where the app falls back
 # to its signature table + Magika.
-python-magic>=0.4.27; sys_platform != "win32"
+python-magic>=0.4.27,<0.5; sys_platform != "win32"
 
 # recovery: deep-learning file-type classification (Google Magika)
-magika>=0.5.0
+magika>=0.5.0,<2
 
 # recovery: fuzzy hashing (ssdeep / Context Triggered Piecewise Hashing)
 ppdeep>=20260221
@@ -37,11 +37,11 @@ ppdeep>=20260221
 # Linux Secret Service) for the ledger's HMAC key and Ed25519 signing seed.
 # Falls back to a private per-user file (see app/core/audit/keystore.py) if
 # no backend is available, e.g. headless Linux CI with no D-Bus session.
-keyring>=24.0
+keyring>=24.0,<26
 
 # audit: Ed25519 signatures on exported certificates (app/core/audit/signing.py).
-cryptography>=42.0
+cryptography>=42.0,<51
 
 # testing
-pytest>=8.0
-pytest-qt>=4.4
+pytest>=8.0,<10
+pytest-qt>=4.4,<5

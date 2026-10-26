@@ -18,7 +18,7 @@ app/gui/     PySide6 views — no business logic; long jobs run on a QThread
 app/core/    Pure Python, no Qt imports — independently testable.
   devices/   Cross-platform device enumeration + safe-target enforcement.
   erasure/   Wipe standards, chunked overwrite I/O, verification,
-             filesystem-aware warnings, firmware command reference strings.
+             filesystem-aware warnings, firmware sanitize (ATA/NVMe, Linux).
   recovery/  pytsk3, PhotoRec and bulk_extractor engines, classification
              (signatures + libmagic + Magika), confidence scoring, hashing.
   audit/     Hash-chained audit ledger (SQLite), HMAC tags, certificates.
@@ -143,12 +143,21 @@ It only warns. It never deletes snapshots or edits filesystem metadata.
 `invoke_trim()` runs `fstrim` on Linux (needs root; at most once a minute
 per volume), and does nothing on macOS and Windows.
 
-## Firmware Sanitize — Not wired (on purpose)
+## Firmware Sanitize (Purge) — Implemented, untested on hardware
 
-`app/core/erasure/firmware_sanitize.py` builds NVMe Format and ATA
-Secure Erase command strings for reference. It never executes them,
-nothing in the app calls it, and its result is labelled "no Purge
-performed".
+`app/core/erasure/firmware_sanitize.py` has two layers. The
+`generate_*`/`simulate_*` functions only build and log the NVMe Format and
+ATA Secure Erase command strings. `execute_ata_secure_erase` and
+`execute_nvme_sanitize` actually run `hdparm` / `nvme sanitize`, and the
+"Firmware Sanitize (Purge)" button on the Drive Eraser page calls them.
+
+Guards: explicit confirmation, the usual system-drive deny list, and a check
+that the target is external/removable. Linux only (needs `hdparm` or
+`nvme-cli`). The ATA path reads `hdparm -I` first and refuses on a Security
+Freeze Lock, or when the state can't be determined.
+
+The tests (`tests/unit/test_firmware_sanitize.py`) mock `subprocess`. Nobody
+has run this against a physical drive yet.
 
 ## Hash-Chained Audit Ledger — Verified
 
@@ -319,11 +328,10 @@ only.
 
 ## Known Gaps (not implemented)
 
-- NIST 800-88 Purge (firmware sanitize execution) — deliberately excluded.
+- Firmware sanitize (Purge) has never been run on a physical drive.
 - Full read-back verification (only sampling).
 - Partition-table recovery (TestDisk not wired).
 - Gap carving for fragments PhotoRec can't map.
-- Secure key storage for the audit HMAC key.
 - Trusted timestamping in the app flow.
 - Exporting the full audit ledger as a PDF/JSON document.
-- Automated GUI tests.
+- GUI tests beyond a smoke test (`tests/gui/test_gui_smoke.py`).

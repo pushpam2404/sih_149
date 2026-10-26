@@ -1,10 +1,16 @@
-"""Reference command strings for firmware-level sanitize (the kind IEEE 2883 Purge relies on).
+"""Firmware-level sanitize (NIST 800-88 Purge): ATA Secure Erase and NVMe Sanitize.
 
-WARNING: Executing these commands destructively can brick drives if the OS
-suspends the machine or if passwords are lost.
-For safety during the hackathon/demo, these functions operate in 
-DOCUMENTATION-ONLY mode. They return the exact command that would have been
-executed but DO NOT run it.
+Two layers live here:
+
+* generate_*_command / simulate_firmware_sanitize only build the command
+  strings and log them. They run nothing.
+* execute_ata_secure_erase / execute_nvme_sanitize really run hdparm / nvme-cli.
+  They need explicit confirmation, refuse anything that is not an
+  external/removable drive, and only work where those tools exist (Linux).
+
+These commands can leave a drive locked (ATA password set, erase failed) or
+unusable if power is lost mid-way. The execute_* path has not been run
+against physical hardware, only against mocked subprocess calls in the tests.
 """
 from __future__ import annotations
 

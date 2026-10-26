@@ -16,7 +16,8 @@ relying on it for anything beyond evaluation. In short:
 - Recovery results and confidence scores are triage aids, not certified
   findings.
 - Certificates follow the structure of a BSA Section 63 certificate but
-  are not legally reviewed or digitally signed.
+  are not legally reviewed. They carry an Ed25519 signature, but no
+  certificate authority ties that key to a person or organisation.
 
 ## Finding Your Way Around
 
@@ -241,8 +242,8 @@ A: Yes, but with strict conditions. Standard wipe passes leave data in remapped 
 
 **Q: Is the certificate legally valid?**
 A: Not on its own. It follows the structure of a BSA 2023 Section 63
-certificate, but it has not been legally reviewed and is not digitally
-signed.
+certificate and is signed with an Ed25519 key, but it has not been legally
+reviewed and no certificate authority vouches for the key.
 
 **Q: Can the audit log be faked?**
 A: Edits are detected by Verify Chain Integrity. The MAC key now loads from
