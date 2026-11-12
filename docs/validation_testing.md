@@ -123,7 +123,7 @@ terminal, Linux/macOS need `sudo` for the physical-drive steps).
 - [ ] Real (non-simulation) single-pass erase on the USB drive; verification passes.
 - [ ] Recovery on the wiped drive returns 0 or near-0 candidates without crashing.
 - [ ] Reformat the drive, add and delete a known file, scan, confirm it comes back.
-- [ ] Audit Log: all actions listed; **Verify Chain Integrity** reports intact.
+- [ ] Audit Log: all actions listed; **Verify chain integrity** reports intact.
 - [ ] Generate a certificate for the USB drive and read it end to end.
 - [ ] Open every generated PDF and check for formatting problems.
 

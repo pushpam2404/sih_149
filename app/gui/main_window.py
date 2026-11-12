@@ -49,10 +49,10 @@ class MainWindow(QMainWindow):
         # (key, section, label, icon, page)
         pages = [
             ("dashboard", None, "Dashboard", "dashboard", self._dashboard),
-            ("drive_eraser", "ERASE", "Drive Eraser", "hard-drive", self._drive_eraser),
+            ("drive_eraser", "Erase", "Drive Eraser", "hard-drive", self._drive_eraser),
             ("file_eraser", None, "File && Folder Eraser", "file-x", self._file_eraser),
-            ("recovery", "RECOVER", "Recovery", "recover", self._recovery),
-            ("audit_log", "EVIDENCE", "Audit Log", "audit", self._audit_log),
+            ("recovery", "Recover", "Recovery", "recover", self._recovery),
+            ("audit_log", "Evidence", "Audit Log", "audit", self._audit_log),
             ("reports", None, "Reports", "reports", self._reports),
         ]
 
@@ -88,7 +88,7 @@ class MainWindow(QMainWindow):
             nav_btn.setProperty("nav", True)
             nav_btn.setCheckable(True)
             nav_btn.setCursor(Qt.PointingHandCursor)
-            nav_btn.setIcon(icons.icon(icon_name, COLORS["text_muted"], COLORS["primary_text"]))
+            nav_btn.setIcon(icons.icon(icon_name, COLORS["text_subtle"], COLORS["text"]))
             nav_btn.setIconSize(QSize(18, 18))
             nav_btn.setToolTip(label.replace("&&", "&"))
             nav_btn.setFocusPolicy(Qt.TabFocus)
@@ -116,11 +116,12 @@ class MainWindow(QMainWindow):
         row = QHBoxLayout()
         row.setSpacing(10)
         row.setContentsMargins(6, 0, 0, 0)
-        logo = QLabel()
-        logo.setFixedSize(36, 36)
+        # The mark is a chain link written as a hash fragment: every action in
+        # this app ends up as one link in the audit chain.
+        logo = QLabel("#0")
+        logo.setObjectName("BrandMark")
+        logo.setFixedSize(32, 32)
         logo.setAlignment(Qt.AlignCenter)
-        logo.setPixmap(icons.pixmap("shield", 20, "#FFFFFF"))
-        logo.setStyleSheet(f"background:{COLORS['primary']}; border-radius:9px;")
         row.addWidget(logo)
         texts = QVBoxLayout()
         texts.setSpacing(0)

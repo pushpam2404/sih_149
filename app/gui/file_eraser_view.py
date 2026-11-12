@@ -45,15 +45,15 @@ class FileEraserView(QWidget):
 
         button_row = QHBoxLayout()
         button_row.setSpacing(8)
-        add_files_btn = button("Add Files...", icon_name="file-plus")
+        add_files_btn = button("Add files…", icon_name="file-plus")
         add_files_btn.clicked.connect(self._add_files)
         button_row.addWidget(add_files_btn)
 
-        add_folder_btn = button("Add Folder...", icon_name="folder-plus")
+        add_folder_btn = button("Add folder…", icon_name="folder-plus")
         add_folder_btn.clicked.connect(self._add_folder)
         button_row.addWidget(add_folder_btn)
 
-        clear_btn = button("Clear Queue", variant="ghost", icon_name="x")
+        clear_btn = button("Clear queue", variant="ghost", icon_name="x")
         clear_btn.clicked.connect(self._clear_queue)
         button_row.addWidget(clear_btn)
         button_row.addStretch()
@@ -82,7 +82,7 @@ class FileEraserView(QWidget):
 
         erase_row = QHBoxLayout()
         erase_row.addStretch()
-        erase_btn = button("Securely Erase Queue", variant="danger", icon_name="trash", large=True)
+        erase_btn = button("Securely erase queue", variant="danger", icon_name="trash", large=True)
         erase_btn.clicked.connect(self._start_erase)
         erase_row.addWidget(erase_btn)
         queue_card.body.addLayout(erase_row)
@@ -170,7 +170,7 @@ class FileEraserView(QWidget):
         if batch.ok:
             if all_warnings:
                 warn_text = "\n".join(f"- {w}" for w in all_warnings)
-                QMessageBox.warning(self, "Erase Complete with Filesystem Warnings", 
+                QMessageBox.warning(self, "Erase complete, with filesystem warnings", 
                     f"All items were overwritten and unlinked, but the underlying filesystem presents some caveats:\n\n{warn_text}\n\nReport saved to {base}.pdf")
             else:
                 QMessageBox.information(self, "Erase complete", f"All items erased.\nReport saved to {base}.pdf")

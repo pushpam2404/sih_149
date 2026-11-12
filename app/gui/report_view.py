@@ -62,7 +62,7 @@ class ReportView(QWidget):
         self._list.clear()
         pdfs = sorted(REPORTS_DIR.glob("*.pdf"), reverse=True) if REPORTS_DIR.exists() else []
         for pdf_path in pdfs:
-            item = QListWidgetItem(icons.icon("reports", COLORS["primary_text"]), pdf_path.name)
+            item = QListWidgetItem(icons.icon("reports", COLORS["text_muted"]), pdf_path.name)
             kind = next((label for prefix, label in _KIND_LABELS.items() if pdf_path.name.startswith(prefix)), "Report")
             modified = datetime.fromtimestamp(pdf_path.stat().st_mtime).strftime("%Y-%m-%d %H:%M")
             item.setToolTip(f"{kind} · saved {modified}")

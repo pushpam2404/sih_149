@@ -101,9 +101,9 @@ on by default.
 |---|---|
 | **Dashboard** | A summary at the top (how many actions are logged, whether the audit log is intact, how many reports exist, the last action), shortcuts to the three main tools, and a list of recent activity. On a fresh install it's empty and fills up as you use the app. |
 | **Drive Eraser** | Wipes a **whole** drive or disk image. Your Mac's own internal drive is always shown as `BLOCKED` and can never be picked. "Simulation mode" is on by default, which wipes a copy instead of the real thing. |
-| **File & Folder Eraser** | Securely erases **individual files or a folder**. Use this for normal files like photos and documents. The red **Securely Erase Queue** button starts the erase. |
+| **File & Folder Eraser** | Securely erases **individual files or a folder**. Use this for normal files like photos and documents. The red **Securely erase queue** button starts the erase. |
 | **Recovery** | Scans a disk image or a plugged-in drive for deleted files. Results appear in two tabs at the bottom: **Recovered Files** and **PII / Metadata Artifacts**, each with a count. |
-| **Audit Log** | A record of everything the app did. **Verify Chain Integrity** checks if anyone edited the record. |
+| **Audit Log** | A record of everything the app did. **Verify chain integrity** checks if anyone edited the record. |
 | **Reports** | PDF reports the app created after each erase or scan. Double-click one to open it. |
 
 ### The file window (same on Windows, Linux and Mac)
@@ -127,7 +127,7 @@ open, close the window and open it again.
 
 ### "Why can't I see my file?"
 
-The **Select Disk Image File...** button (Drive Eraser) and **Browse
+The **Select disk image file...** button (Drive Eraser) and **Browse
 Image...** button (Recovery) only show disk image files (`.img`, `.dd`,
 `.dmg`) by default. Everything else is hidden.
 
@@ -279,11 +279,11 @@ files starting with `._` — that's normal, ignore them.)
 ### Step 6 — Securely erase photo2 (in the app)
 
 1. In the app, click **File & Folder Eraser** in the left menu.
-2. Click **Add Files...**
+2. Click **Add files...**
 3. In the file window, click **DEMOVOL** on the left side. (Or type
    `/Volumes/DEMOVOL` in the **File name** box and press Enter.)
 4. Select **photo2.jpg** and click **Open**.
-5. Click **Securely Erase Queue**.
+5. Click **Securely erase queue**.
 6. In the confirmation window, type exactly `ERASE FILES`, tick the
    checkbox, and click **Erase permanently**.
 7. You'll see `Erase complete — PASS`. A warning window about filesystem
@@ -319,8 +319,8 @@ stick first. Ejecting makes sure everything is saved into `demo.img`.
 ### Step 9 — Scan it for deleted files
 
 1. In the app, click **Recovery** in the left menu.
-2. Click **Browse Image...** and pick **demo.img** on your Desktop.
-3. Click **Start Recovery Scan**. On a 64 MB image this takes a few
+2. Click **Browse image...** and pick **demo.img** on your Desktop.
+3. Click **Start recovery scan**. On a 64 MB image this takes a few
    seconds.
 
 ### Step 10 — Read the results
@@ -417,11 +417,11 @@ mounted and no admin rights are needed.
 
    It prints where it saved `practice.img` (in the project folder).
 
-2. In the app, click **Recovery** in the left menu → **Browse Image...** →
-   pick `practice.img` → **Start Recovery Scan**.
+2. In the app, click **Recovery** in the left menu → **Browse image...** →
+   pick `practice.img` → **Start recovery scan**.
 3. You should see `_HOTO1.JPG` (engine **pytsk3**) and, if PhotoRec is
    installed, an `f….jpg` (engine **photorec**) — both type **JPEG**,
-   confidence **100**. Select one and click **Export Selected File...** to
+   confidence **100**. Select one and click **Export selected file...** to
    get your photo back.
 
 We tested this on a Mac with a 10 MB JPEG: both engines returned the photo
@@ -442,7 +442,7 @@ treat it as untested.
    **Format…**; Linux: the Disks app).
 2. Copy two photos onto it: `photo1.jpg` and `photo2.jpg`.
 3. **Erase photo2 first:** in the app, **File & Folder Eraser** →
-   **Add Files...** → click the USB stick's drive on the left side of the
+   **Add files...** → click the USB stick's drive on the left side of the
    file window → pick `photo2.jpg` → **Securely Erase
    Queue** → type `ERASE FILES`, tick the box, **Erase permanently**.
 4. **Then delete photo1 normally:** Windows — select it and press

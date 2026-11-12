@@ -35,7 +35,7 @@ def button(text: str, variant: str = "secondary", icon_name: str | None = None, 
         btn.setProperty("size", "lg")
     if icon_name:
         on_solid = variant in ("primary", "danger")
-        btn.setIcon(icons.icon(icon_name, "#FFFFFF" if on_solid else COLORS["text_muted"]))
+        btn.setIcon(icons.icon(icon_name, (COLORS["on_primary"] if variant == "primary" else "#FFFFFF") if on_solid else COLORS["text_muted"]))
         btn.setIconSize(QSize(16, 16))
     btn.setCursor(Qt.PointingHandCursor)
     return btn
@@ -103,7 +103,7 @@ class Card(QFrame):
             head.setSpacing(10)
             if icon_name:
                 ic = QLabel()
-                ic.setPixmap(icons.pixmap(icon_name, 18, COLORS["primary_text"]))
+                ic.setPixmap(icons.pixmap(icon_name, 18, COLORS["text_subtle"]))
                 head.addWidget(ic, 0, Qt.AlignTop)
             texts = QVBoxLayout()
             texts.setSpacing(2)
@@ -166,10 +166,10 @@ class StatTile(QFrame):
         top = QHBoxLayout()
         top.setSpacing(8)
         self._icon = QLabel()
-        top.addWidget(self._icon)
         name = QLabel(label)
         name.setObjectName("StatLabel")
         top.addWidget(name, 1)
+        top.addWidget(self._icon, 0, Qt.AlignVCenter)
         layout.addLayout(top)
 
         self._value = QLabel("—")
@@ -180,11 +180,18 @@ class StatTile(QFrame):
         self._caption.setWordWrap(True)
         layout.addWidget(self._caption)
         self._icon_name = icon_name
-        self.set_tone("primary")
+        self.set_tone("neutral")
 
     def set_tone(self, tone: str) -> None:
-        fg, _ = TONE_COLORS.get(tone, TONE_COLORS["neutral"])
-        self._icon.setPixmap(icons.pixmap(self._icon_name, 16, fg))
+        # Stat tiles are numbers. A status dot appears only when the figure has a
+        # state worth reading at a glance (the chain is intact, or broken).
+        self._icon.setFixedSize(8, 8)
+        if tone in ("neutral", "primary", "info"):
+            self._icon.setVisible(False)
+            return
+        fg = COLORS["seal"] if tone == "success" else TONE_COLORS.get(tone, TONE_COLORS["neutral"])[0]
+        self._icon.setStyleSheet(f"background:{fg}; border-radius:4px;")
+        self._icon.setVisible(True)
 
     def set_value(self, value: str, caption: str = "", tone: str | None = None) -> None:
         self._value.setText(value)

@@ -75,7 +75,7 @@ class RecoveryView(QWidget):
         self._source_input.setFont(mono_font(12))
         source_row.addWidget(self._source_input, 1)
 
-        browse_btn = button("Browse Image...", icon_name="folder-open")
+        browse_btn = button("Browse image…", icon_name="folder-open")
         browse_btn.clicked.connect(self._browse_image)
         source_row.addWidget(browse_btn)
         source_card.body.addLayout(source_row)
@@ -89,7 +89,7 @@ class RecoveryView(QWidget):
         source_card.body.addWidget(self._device_combo)
         source_card.body.addStretch()
 
-        scan_btn = button("Start Recovery Scan", variant="primary", icon_name="search", large=True)
+        scan_btn = button("Start recovery scan", variant="primary", icon_name="search", large=True)
         scan_btn.clicked.connect(self._start_scan)
         source_card.body.addWidget(scan_btn)
         top.addWidget(source_card, 3)
@@ -102,11 +102,11 @@ class RecoveryView(QWidget):
 
         results_card = Card("Results", "Select a recovered file to export it.", icon_name="recover")
 
-        export_btn = button("Export Selected File...", icon_name="download")
+        export_btn = button("Export selected file…", icon_name="download")
         export_btn.clicked.connect(self._export_selected)
         results_card.actions.addWidget(export_btn)
 
-        report_btn = button("Generate Forensic Report", icon_name="file-output")
+        report_btn = button("Generate forensic report", icon_name="file-output")
         report_btn.clicked.connect(self._generate_report)
         results_card.actions.addWidget(report_btn)
 
@@ -124,7 +124,7 @@ class RecoveryView(QWidget):
         for col, width in enumerate([190, 80, 80, 95, 100, 85, 140]):
             self._results_table.setColumnWidth(col, width)
         self._results_empty = EmptyHint(
-            "No results yet.\nChoose a source and click Start Recovery Scan.", self._results_table.viewport()
+            "No results yet.\nChoose a source and click Start recovery scan.", self._results_table.viewport()
         )
         self._results_tabs.addTab(self._results_table, "Recovered Files:")
 

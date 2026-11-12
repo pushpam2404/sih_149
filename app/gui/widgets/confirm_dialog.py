@@ -27,7 +27,7 @@ from app.gui.widgets.ui import field_label
 class ConfirmDestructiveDialog(QDialog):
     def __init__(self, warning_text: str, confirm_token: str, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Confirm Destructive Operation")
+        self.setWindowTitle("Confirm destructive operation")
         self.setMinimumWidth(480)
         self._confirm_token = confirm_token
 

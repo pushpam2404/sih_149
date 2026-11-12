@@ -143,13 +143,13 @@ It only warns. It never deletes snapshots or edits filesystem metadata.
 `invoke_trim()` runs `fstrim` on Linux (needs root; at most once a minute
 per volume), and does nothing on macOS and Windows.
 
-## Firmware Sanitize (Purge) — Implemented, untested on hardware
+## Firmware sanitize (purge) — Implemented, untested on hardware
 
 `app/core/erasure/firmware_sanitize.py` has two layers. The
 `generate_*`/`simulate_*` functions only build and log the NVMe Format and
 ATA Secure Erase command strings. `execute_ata_secure_erase` and
 `execute_nvme_sanitize` actually run `hdparm` / `nvme sanitize`, and the
-"Firmware Sanitize (Purge)" button on the Drive Eraser page calls them.
+"Firmware sanitize (purge)" button on the Drive Eraser page calls them.
 
 Guards: explicit confirmation, the usual system-drive deny list, and a check
 that the target is external/removable. Linux only (needs `hdparm` or

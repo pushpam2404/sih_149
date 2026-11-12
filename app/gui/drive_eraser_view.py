@@ -57,17 +57,17 @@ class DriveEraserView(QWidget):
         )
         root.addWidget(page)
 
-        refresh_btn = button("Refresh Devices", icon_name="refresh")
+        refresh_btn = button("Refresh devices", icon_name="refresh")
         refresh_btn.clicked.connect(self._refresh_devices)
         page.header_actions.addWidget(refresh_btn)
 
-        pick_image_btn = button("Select Disk Image File...", icon_name="disc")
+        pick_image_btn = button("Select disk image file…", icon_name="disc")
         pick_image_btn.clicked.connect(self._pick_disk_image)
         page.header_actions.addWidget(pick_image_btn)
 
         targets = Card(
             "Targets",
-            "Select one row marked SAFE. Rows marked BLOCKED can never be erased.",
+            "Select one row marked Safe to erase. Rows marked Blocked can never be erased.",
             icon_name="hard-drive",
         )
         self._table = DeviceTable()
@@ -105,12 +105,12 @@ class DriveEraserView(QWidget):
         self._update_simulation_note(self._simulation_checkbox.isChecked())
         options.body.addStretch()
 
-        erase_btn = button("Erase Selected Target", variant="danger", icon_name="trash", large=True)
+        erase_btn = button("Erase selected target", variant="danger", icon_name="trash", large=True)
         erase_btn.clicked.connect(self._start_erase)
         options.body.addWidget(erase_btn)
         
         advanced = Card("Advanced", icon_name="shield-alert")
-        self._firmware_btn = button("Firmware Sanitize (Purge)...", variant="danger", icon_name="trash")
+        self._firmware_btn = button("Firmware sanitize (purge)…", variant="danger", icon_name="trash")
         self._firmware_btn.clicked.connect(self._start_firmware_sanitize)
         self._firmware_btn.setEnabled(False)
         advanced.body.addWidget(self._firmware_btn)
@@ -224,7 +224,7 @@ class DriveEraserView(QWidget):
             QMessageBox.critical(self, "Erase failed", f"{result.erase.error}\nReport saved to {base}.pdf")
 
         if result.recovery_check is not None and result.recovery_candidates_found > 0:
-            QMessageBox.warning(self, "Recovery Check Warning", f"⚠ Independent recovery check found {result.recovery_candidates_found} recoverable file(s) after the wipe. See the report for details.")
+            QMessageBox.warning(self, "Recovery check warning", f"Independent recovery check found {result.recovery_candidates_found} recoverable file(s) after the wipe. See the report for details.")
 
     def _on_failure(self, error: str) -> None:
         self._progress.finish(f"Error: {error}")
@@ -291,7 +291,7 @@ class DriveEraserView(QWidget):
         self._progress.finish(f"Firmware Sanitize complete — {status}")
         
         if result.ok:
-            QMessageBox.information(self, "Firmware Sanitize complete", "PASS: Firmware command completed successfully.")
+            QMessageBox.information(self, "Firmware sanitize complete", "PASS: Firmware command completed successfully.")
         else:
-            QMessageBox.critical(self, "Firmware Sanitize failed", f"FAIL: {result.error}")
+            QMessageBox.critical(self, "Firmware sanitize failed", f"FAIL: {result.error}")
 

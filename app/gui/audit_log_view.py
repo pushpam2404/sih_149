@@ -41,11 +41,11 @@ class AuditLogView(QWidget):
         refresh_btn.clicked.connect(self.refresh)
         page.header_actions.addWidget(refresh_btn)
 
-        verify_btn = button("Verify Chain Integrity", variant="primary", icon_name="audit")
+        verify_btn = button("Verify chain integrity", variant="primary", icon_name="audit")
         verify_btn.clicked.connect(self._verify_chain)
         page.header_actions.addWidget(verify_btn)
 
-        cert_btn = button("Generate Certificate (Sec. 63-style)", icon_name="certificate")
+        cert_btn = button("Generate certificate (Sec. 63-style)", icon_name="certificate")
         cert_btn.clicked.connect(self._generate_certificate)
         page.header_actions.addWidget(cert_btn)
 
@@ -126,12 +126,12 @@ class AuditLogView(QWidget):
     def _generate_certificate(self) -> None:
         entries = self._ledger.get_entries()
         if not entries:
-            QMessageBox.warning(self, "No Entries", "The audit log is empty.")
+            QMessageBox.warning(self, "No entries", "The audit log is empty.")
             return
             
         targets = sorted(list(set(e.target for e in entries)))
         if not targets:
-            QMessageBox.warning(self, "No Targets", "No targets found in the audit log.")
+            QMessageBox.warning(self, "No targets", "No targets found in the audit log.")
             return
 
         target, ok = QInputDialog.getItem(

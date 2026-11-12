@@ -3,7 +3,8 @@
 Everything visual lives here so views only set semantic hooks
 (`objectName` / dynamic properties such as `variant="danger"`) instead of
 hardcoding colours. Dark-only, tuned for a forensics/security tool:
-slate surfaces, blue for primary actions, amber for attention, red
+graphite surfaces, off-white primary actions, one sage accent for
+selection and the intact hash chain, amber for attention, and red
 reserved strictly for destructive actions and failures.
 
 Fonts (Fira Sans / Fira Code, SIL OFL — see assets/fonts/OFL.txt) are
@@ -29,33 +30,40 @@ _ICONS_DIR = _ASSETS_DIR / "icons"
 # --- Tokens -----------------------------------------------------------------
 
 COLORS = {
-    "bg": "#0B1220",
-    "sidebar": "#0E1628",
-    "surface": "#121B2E",
-    "surface_alt": "#162136",
-    "surface_raised": "#1A2640",
-    "border": "#233250",
-    "border_strong": "#31446A",
-    "text": "#E6EDF7",
-    "text_muted": "#9AA8BF",
-    "text_subtle": "#8391A9",
-    "primary": "#2563EB",
-    "primary_hover": "#1D4ED8",
-    "primary_pressed": "#1E40AF",
-    "primary_soft": "#1B2D4F",
-    "accent": "#F59E0B",
-    "accent_soft": "#3A2A0E",
-    "danger": "#DC2626",
-    "danger_hover": "#B91C1C",
-    "danger_pressed": "#991B1B",
-    "danger_soft": "#3A1A1F",
-    "success": "#4ADE80",
-    "success_soft": "#12301F",
-    "danger_text": "#F87171",
-    "primary_text": "#60A5FA",
-    "info": "#38BDF8",
-    "info_soft": "#0F2A3A",
-    "selection": "#1E3A66",
+    # Graphite ramp: an evidence room at night. Surfaces stay grey so the
+    # content (device verdicts, the hash chain, the wipe log) carries meaning.
+    "bg": "#141415",
+    "sidebar": "#0F0F10",
+    "surface": "#19191B",
+    "surface_alt": "#1E1E20",
+    "surface_raised": "#232325",
+    "border": "#29292C",
+    "border_strong": "#36363A",
+    "text": "#EDEDED",
+    "text_muted": "#A1A1A6",
+    "text_subtle": "#85858B",
+    # Primary actions are off-white with dark text, not a coloured button.
+    "primary": "#E8E8E6",
+    "primary_hover": "#FFFFFF",
+    "primary_pressed": "#CFCFCC",
+    "primary_soft": "#26282A",
+    "on_primary": "#141415",
+    # One accent, sage like an instrument readout: selection, focus, progress, "intact".
+    "seal": "#8FC1A9",
+    "seal_soft": "#1B2622",
+    "accent": "#E0A640",
+    "accent_soft": "#2A2316",
+    "danger": "#C9363C",
+    "danger_hover": "#B12E34",
+    "danger_pressed": "#97272C",
+    "danger_soft": "#2A1A1B",
+    "success": "#4CC38A",
+    "success_soft": "#16261E",
+    "danger_text": "#E5686D",
+    "primary_text": "#8FC1A9",
+    "info": "#A1A1A6",
+    "info_soft": "#232325",
+    "selection": "#2B302E",
 }
 
 TONE_COLORS = {
@@ -131,12 +139,20 @@ QLabel#BrandSubtitle, QLabel#SidebarSection, QLabel#SidebarFooter {{
     font-size: 11px;
 }}
 QLabel#SidebarSection {{
-    font-weight: 600;
+    font-weight: 500;
     padding: 0 12px;
+}}
+QLabel#BrandMark {{
+    background: transparent;
+    border: 1px solid {c['border_strong']};
+    border-radius: 8px;
+    color: {c['text']};
+    font-family: {mono};
+    font-size: 11px;
 }}
 QPushButton[nav="true"] {{
     text-align: left;
-    padding: 9px 12px;
+    padding: 8px 12px;
     border: none;
     border-radius: {RADIUS['md']}px;
     background: transparent;
@@ -149,18 +165,18 @@ QPushButton[nav="true"]:hover {{
     color: {c['text']};
 }}
 QPushButton[nav="true"]:checked {{
-    background: {c['primary_soft']};
+    background: {c['surface_raised']};
     color: {c['text']};
-    font-weight: 600;
+    border-top: 1px solid #303033;
 }}
 QPushButton[nav="true"]:focus {{
-    border: 1px solid {c['primary']};
+    border: 1px solid {c['seal']};
 }}
 
 /* ---------- Page header ---------- */
 QLabel#PageTitle {{
-    font-size: 22px;
-    font-weight: 600;
+    font-size: 24px;
+    font-weight: 500;
 }}
 QLabel#PageSubtitle {{
     color: {c['text_muted']};
@@ -197,8 +213,9 @@ QLabel#StatLabel {{
     font-weight: 500;
 }}
 QLabel#StatValue {{
-    font-size: 24px;
-    font-weight: 600;
+    font-family: {mono};
+    font-size: 26px;
+    font-weight: 400;
 }}
 QLabel#StatCaption {{
     color: {c['text_subtle']};
@@ -206,20 +223,20 @@ QLabel#StatCaption {{
 }}
 QFrame#Callout {{
     background: {c['accent_soft']};
-    border: 1px solid #5A4213;
+    border: 1px solid #4A3B1E;
     border-radius: {RADIUS['md']}px;
 }}
 QFrame#Callout QLabel {{
-    color: #F8D38A;
+    color: #EBCB8F;
     font-size: 12px;
 }}
 QFrame#DangerCallout {{
     background: {c['danger_soft']};
-    border: 1px solid #5C2530;
+    border: 1px solid #4A2629;
     border-radius: {RADIUS['md']}px;
 }}
 QFrame#DangerCallout QLabel {{
-    color: #FCA5A5;
+    color: #EFA3A6;
 }}
 
 /* ---------- Buttons ---------- */
@@ -232,14 +249,14 @@ QPushButton {{
     font-weight: 500;
 }}
 QPushButton:hover {{
-    background: #213050;
-    border-color: #3C5282;
+    background: #2A2A2D;
+    border-color: #444449;
 }}
 QPushButton:pressed {{
-    background: #1A2744;
+    background: #1E1E20;
 }}
 QPushButton:focus {{
-    border: 1px solid {c['primary']};
+    border: 1px solid {c['seal']};
 }}
 QPushButton:disabled {{
     color: {c['text_subtle']};
@@ -249,8 +266,8 @@ QPushButton:disabled {{
 QPushButton[variant="primary"] {{
     background: {c['primary']};
     border: 1px solid {c['primary']};
-    color: #FFFFFF;
-    font-weight: 600;
+    color: {c['on_primary']};
+    font-weight: 500;
 }}
 QPushButton[variant="primary"]:hover {{
     background: {c['primary_hover']};
@@ -263,7 +280,7 @@ QPushButton[variant="danger"] {{
     background: {c['danger']};
     border: 1px solid {c['danger']};
     color: #FFFFFF;
-    font-weight: 600;
+    font-weight: 500;
 }}
 QPushButton[variant="danger"]:hover {{
     background: {c['danger_hover']};
@@ -301,10 +318,10 @@ QLineEdit, QComboBox, QSpinBox {{
     selection-background-color: {c['selection']};
 }}
 QLineEdit:hover, QComboBox:hover {{
-    border-color: #3C5282;
+    border-color: #444449;
 }}
 QLineEdit:focus, QComboBox:focus {{
-    border: 1px solid {c['primary']};
+    border: 1px solid {c['seal']};
 }}
 QComboBox::drop-down {{
     border: none;
@@ -327,11 +344,11 @@ QCheckBox::indicator {{
     background: {c['surface_alt']};
 }}
 QCheckBox::indicator:hover {{
-    border-color: {c['primary']};
+    border-color: {c['seal']};
 }}
 QCheckBox::indicator:checked {{
-    background: {c['primary']};
-    border-color: {c['primary']};
+    background: #3E6B58;
+    border-color: {c['seal']};
     image: url({check_icon});
 }}
 
@@ -372,8 +389,8 @@ QHeaderView::section {{
     border: none;
     border-bottom: 1px solid {c['border']};
     padding: 8px;
-    font-size: 11px;
-    font-weight: 600;
+    font-size: 12px;
+    font-weight: 500;
 }}
 QTableCornerButton::section {{
     background: {c['surface_alt']};
@@ -402,8 +419,7 @@ QTabBar::tab:hover {{
 }}
 QTabBar::tab:selected {{
     color: {c['text']};
-    border-bottom: 2px solid {c['primary_text']};
-    font-weight: 600;
+    border-bottom: 2px solid {c['seal']};
 }}
 
 /* ---------- Qt's own file dialog (used on every OS) ---------- */
@@ -435,7 +451,7 @@ QToolButton {{
     padding: 4px;
 }}
 QToolButton:hover {{
-    background: #213050;
+    background: #2A2A2D;
 }}
 QToolButton:disabled {{
     background: {c['surface_alt']};
@@ -465,17 +481,17 @@ QProgressBar {{
     color: transparent;
 }}
 QProgressBar::chunk {{
-    background: {c['primary']};
+    background: {c['seal']};
     border-radius: 3px;
 }}
 QPlainTextEdit#Log {{
-    background: #0A101C;
+    background: #0F0F10;
     border: 1px solid {c['border']};
     border-radius: {RADIUS['md']}px;
     padding: 8px;
     font-family: {mono};
     font-size: 12px;
-    color: #B8C4D8;
+    color: #C9C9C6;
     selection-background-color: {c['selection']};
 }}
 QLabel#StatusText {{
@@ -498,7 +514,7 @@ QScrollBar::handle:vertical {{
     min-height: 28px;
 }}
 QScrollBar::handle:vertical:hover {{
-    background: #45598A;
+    background: #4A4A4F;
 }}
 QScrollBar:horizontal {{
     background: transparent;
@@ -550,7 +566,7 @@ def _palette() -> QPalette:
     pal.setColor(QPalette.HighlightedText, QColor(c["text"]))
     pal.setColor(QPalette.ToolTipBase, QColor(c["surface_raised"]))
     pal.setColor(QPalette.ToolTipText, QColor(c["text"]))
-    pal.setColor(QPalette.Link, QColor(c["primary"]))
+    pal.setColor(QPalette.Link, QColor(c["seal"]))
     for role in (QPalette.WindowText, QPalette.Text, QPalette.ButtonText):
         pal.setColor(QPalette.Disabled, role, QColor(c["text_subtle"]))
     return pal

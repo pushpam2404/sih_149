@@ -38,7 +38,7 @@ class ThemedIconProvider(QAbstractFileIconProvider):
                 QAbstractFileIconProvider.IconType.Drive: "hard-drive",
                 QAbstractFileIconProvider.IconType.Folder: "folder",
             }.get(arg, "file")
-        color = COLORS["primary_text"] if name != "file" else COLORS["text_muted"]
+        color = COLORS["text_muted"] if name != "file" else COLORS["text_muted"]
         return icons.icon(name, color)
 
 

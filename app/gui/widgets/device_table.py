@@ -47,7 +47,7 @@ class DeviceTable(QTableWidget):
                 f"{size_gb:.2f} GB",
                 kind,
                 info.filesystem or "-",
-                "SAFE" if verdict.allowed else f"BLOCKED: {verdict.reason}",
+                "Safe to erase" if verdict.allowed else f"Blocked: {verdict.reason}",
             ]
             for col, value in enumerate(values):
                 item = QTableWidgetItem(value)

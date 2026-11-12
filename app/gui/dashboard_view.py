@@ -23,7 +23,7 @@ from app.gui.widgets import icons
 from app.gui.widgets.ui import Card, EmptyHint, Page, StatTile, button, style_table
 
 _RECENT_LIMIT = 15
-_COLUMNS = ["Timestamp (UTC)", "Action", "Target"]
+_COLUMNS = ["Timestamp (UTC)", "Action", "Target", "Chain link"]
 
 _MODULES = [
     ("drive_eraser", "hard-drive", "Drive Eraser", "Wipe a whole removable drive or disk image, with verification."),
@@ -42,7 +42,7 @@ class _ModuleCard(QFrame):
         head = QHBoxLayout()
         head.setSpacing(10)
         ic = QLabel()
-        ic.setPixmap(icons.pixmap(icon_name, 20, COLORS["primary_text"]))
+        ic.setPixmap(icons.pixmap(icon_name, 18, COLORS["text_subtle"]))
         head.addWidget(ic)
         t = QLabel(title)
         t.setObjectName("CardTitle")
@@ -83,8 +83,9 @@ class DashboardView(QWidget):
         self._chain_tile = StatTile("Chain integrity", "audit")
         self._reports_tile = StatTile("PDF reports", "reports")
         self._last_tile = StatTile("Last activity", "recover")
-        for tile in (self._entries_tile, self._chain_tile, self._reports_tile, self._last_tile):
-            stats.addWidget(tile)
+        # The chain tile is the one figure that matters most, so it gets the most room.
+        for tile, stretch in ((self._chain_tile, 2), (self._entries_tile, 1), (self._reports_tile, 1), (self._last_tile, 1)):
+            stats.addWidget(tile, stretch)
         page.body.addLayout(stats)
 
         modules = QHBoxLayout()
@@ -93,7 +94,7 @@ class DashboardView(QWidget):
             modules.addWidget(_ModuleCard(icon_name, title, text, lambda _=False, k=key: self.navigate_requested.emit(k)))
         page.body.addLayout(modules)
 
-        activity = Card("Recent activity", "Latest audit log entries, newest first.", icon_name="activity")
+        activity = Card("Recent activity", "Latest audit log entries, newest first. Each one carries the start of its own hash, the link the next entry chains to.", icon_name="activity")
         self._status_label = QLabel()
         self._status_label.setObjectName("Hint")
         activity.actions.addWidget(self._status_label)
@@ -114,30 +115,34 @@ class DashboardView(QWidget):
     def refresh(self) -> None:
         entries = self._ledger.get_entries()
         chain = self._ledger.verify_chain()
-        chain_status = "intact" if chain.ok else f"BROKEN at entry {chain.broken_at_entry_id}"
+        chain_status = "intact" if chain.ok else f"broken at entry {chain.broken_at_entry_id}"
         self._status_label.setText(
             f"Audit entries: {len(entries)}  ·  Chain integrity: {chain_status}"
         )
 
         self._entries_tile.set_value(str(len(entries)), "logged actions in the ledger")
         if chain.ok:
-            self._chain_tile.set_value("Intact", "hash chain verified just now", tone="success")
+            self._chain_tile.set_value("Intact", f"{len(entries)} links verified just now, SHA-256", tone="success")
         else:
             self._chain_tile.set_value("Broken", f"first bad entry: {chain.broken_at_entry_id}", tone="danger")
         report_count = len(list(REPORTS_DIR.glob("*.pdf"))) if REPORTS_DIR.exists() else 0
         self._reports_tile.set_value(str(report_count), "in the reports folder")
         if entries:
             last = entries[-1]
-            self._last_tile.set_value(last.action.replace("_", " ").title(), last.timestamp[:19].replace("T", "  "))
+            self._last_tile.set_value(last.action.replace("_", " ").capitalize(), last.timestamp[:19].replace("T", "  "))
         else:
             self._last_tile.set_value("None", "nothing logged yet", tone="neutral")
 
         recent = entries[-_RECENT_LIMIT:][::-1]
         self._table.setRowCount(len(recent))
         for row, entry in enumerate(recent):
-            values = [entry.timestamp, entry.action, entry.target]
+            values = [entry.timestamp, entry.action, entry.target, (entry.entry_hash or "")[:10]]
             for col, value in enumerate(values):
                 item = QTableWidgetItem(value)
+                if col == 3:
+                    item.setFont(mono_font(12))
+                    item.setForeground(QColor(COLORS["seal"]))
+                    item.setToolTip(entry.entry_hash)
                 if col == 0:
                     item.setFont(mono_font(12))
                     item.setForeground(QColor(COLORS["text_muted"]))

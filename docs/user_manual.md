@@ -98,8 +98,8 @@ cannot be used on a real device; turn it off explicitly for real hardware.
 
 ## Module 1: Drive Eraser
 
-1. Open **Drive Eraser** from the left menu. Click **Refresh Devices** to list
-   attached drives, or **Select Disk Image File...** to pick an image.
+1. Open **Drive Eraser** from the left menu. Click **Refresh devices** to list
+   attached drives, or **Select disk image file...** to pick an image.
 2. In the **Targets** card, select a row. Only rows marked `SAFE` (green)
    can be erased; `BLOCKED` rows (red) show the reason, and hovering shows
    the full text.
@@ -107,7 +107,7 @@ cannot be used on a real device; turn it off explicitly for real hardware.
    zero/random, NIST 800-88 Clear, or DoD 5220.22-M) and check the
    Simulation Mode box is set as you intend. The note under the checkbox
    is amber while simulation is on and turns red when it is off.
-4. Click the red **Erase Selected Target** button, type the confirmation
+4. Click the red **Erase selected target** button, type the confirmation
    code, tick the acknowledgment box, and click **Erase permanently**.
 5. Progress and per-pass verification results appear in the **Progress**
    card.
@@ -127,11 +127,11 @@ DoD 5220.22-M takes about three times that.
 ## Module 2: File & Folder Eraser
 
 1. Open **File & Folder Eraser** from the left menu.
-2. **Add Files...** for individual files, or **Add Folder...** to queue an
+2. **Add files...** for individual files, or **Add folder...** to queue an
    entire folder (its contents are erased and the folder removed). The
    badge on the **Erase queue** card shows how many files (or "1 folder")
    are queued.
-3. Click the red **Securely Erase Queue** button, type `ERASE FILES` (or
+3. Click the red **Securely erase queue** button, type `ERASE FILES` (or
    `ERASE FOLDER`), tick the box, click **Erase permanently**, and watch
    the **Progress** card. Expect
    roughly a quarter of a second per file even for tiny files (filesystem
@@ -152,7 +152,7 @@ renamed with metadata stripped", not "physically overwritten".
 
 1. Open **Recovery** from the left menu. In the **Source** card, browse to
    a disk image, or pick an attached device from the dropdown.
-2. Click **Start Recovery Scan**. Installed engines run in turn: pytsk3
+2. Click **Start recovery scan**. Installed engines run in turn: pytsk3
    (filesystem-aware), PhotoRec (signature carving), bulk_extractor
    (PII/metadata artifacts).
 3. **Recovered Files** tab (in the **Results** card; the tab title shows
@@ -163,8 +163,8 @@ renamed with metadata stripped", not "physically overwritten".
    Hashes are shortened in the table; hover over one to see it in full.
 4. **PII / Metadata Artifacts — Bulk Extractor** tab (bulk_extractor only): click a row to
    preview the extracted feature file (for example, email addresses).
-5. Select a recovered file and click **Export Selected File...**, or click
-   **Generate Forensic Report** for a PDF/JSON report.
+5. Select a recovered file and click **Export selected file...**, or click
+   **Generate forensic report** for a PDF/JSON report.
 
 How to read the results:
 - **Confidence** ranks candidates *within this scan*. A score of 80 is not
@@ -188,11 +188,11 @@ a hardware write-blocker.
 
 - The **Audit Log** page lists every logged action with its hash (hover
   over a hash to see it in full). Click a row to see the entry's details.
-- **Verify Chain Integrity** recomputes every entry's hash, chain link and
+- **Verify chain integrity** recomputes every entry's hash, chain link and
   MAC tag, and names the first entry that fails. It *detects* tampering
   after the fact; it cannot prevent someone with file access from
   changing the database.
-- **Generate Certificate (Sec. 63-style)** asks for a target, operator
+- **Generate certificate (Sec. 63-style)** asks for a target, operator
   name, organization, and the wipe status, then saves a JSON certificate
   with that target's audit entries and an embedded list of limitations.
   Enter a wipe status you have actually verified; the tool does not check
@@ -234,7 +234,7 @@ while the source image stays intact. Simulation runs are labelled
 ## FAQ
 
 **Q: Can this permanently sanitize an SSD?**
-A: Yes, but with strict conditions. Standard wipe passes leave data in remapped or over-provisioned flash cells. The "Advanced" Firmware Sanitize (Purge) feature solves this by issuing real firmware commands (ATA Secure Erase / NVMe Sanitize) to the drive controller. However, this feature is:
+A: Yes, but with strict conditions. Standard wipe passes leave data in remapped or over-provisioned flash cells. The "Advanced" Firmware sanitize (purge) feature solves this by issuing real firmware commands (ATA Secure Erase / NVMe Sanitize) to the drive controller. However, this feature is:
 1. Gated strictly to external/removable drives (never internal/system drives).
 2. Available only on Linux (requires `hdparm` or `nvme-cli`; macOS/Windows cannot safely issue these commands).
 3. Subject to Security Freeze Locks (you may need to physically unplug/replug the drive if the OS freezes it).
@@ -246,7 +246,7 @@ certificate and is signed with an Ed25519 key, but it has not been legally
 reviewed and no certificate authority vouches for the key.
 
 **Q: Can the audit log be faked?**
-A: Edits are detected by Verify Chain Integrity. The MAC key now loads from
+A: Edits are detected by Verify chain integrity. The MAC key now loads from
 the OS keystore (Keychain / Credential Manager / Secret Service) instead of
 a fixed value in source, and exported certificates are additionally signed
 with an Ed25519 key from the same keystore, verifiable with the embedded
